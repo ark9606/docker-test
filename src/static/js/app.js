@@ -2,14 +2,47 @@ function App() {
     const { Container, Row, Col } = ReactBootstrap;
 
     const [imgBase64, setImageBase64] = React.useState(null);
+    const [imgUrl, setImageUrl] = React.useState(null);
+    const [imgFile, setImageFile] = React.useState(null);
 
     React.useEffect(() => {
+        let start = performance.now();
+        let end = null;
+        let report = 'Performance report:</br>'
         fetch('/images/json-base64')
             .then(r => r.json())
             .then(setImageBase64)
-            .then((r) => {
-                console.log(r);
+            .then(() => {
+                end = performance.now();
+                let perfStat = `Static image&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-> ~150 ms</br>`;
+                perfStat += `JSON base64&nbsp;&nbsp;-> ${formatTime(end - start)} ms</br>`;
+                report += perfStat;
+                start = performance.now();
+                return fetch('/images/json-url');
+            })
+
+            .then(r => r.json())
+            .then(setImageUrl)
+            .then(() => {
+                end = performance.now();
+                const perfStat = `JSON URL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-> ${formatTime(end - start)} (+ ~50) ms</br>`;
+                report += perfStat;
+                start = performance.now();
+                return fetch('/images/file');
+            })
+
+            .then(r => r.blob())
+            .then(blob => {
+                setImageFile(URL.createObjectURL(blob));
+            })
+            .then(() => {
+                end = performance.now();
+                const perfStat = `RAW IMAGE&nbsp;&nbsp;&nbsp;-> ${formatTime(end - start)} (+ ~10) ms`;
+                report += perfStat;
+                const p = document.getElementById('perf-report')
+                p.innerHTML = report;
             });
+
     }, []);
     return (
         <Container>
@@ -24,12 +57,31 @@ function App() {
                     <img src={'/public/bavarian-style-village.jpeg'} width={300} alt={'bavarian-style-village'}/>
                 </Col>
                 <Col>
-                    <p>Image from base64 in json response</p>
+                    <p>JSON base64</p>
                     {imgBase64 && <img src={`data:image/jpeg;base64,${imgBase64.img}`} width={300} alt={'france-style-village'}/>}
+                </Col>
+            </Row>
+            <Row>
+                <Col>
+                    <p>JSON URL</p>
+                    {imgUrl && <img src={imgUrl.img} width={300} alt={'germany-style-village'}/>}
+                </Col>
+                <Col>
+                    <p>Raw image</p>
+                    {imgFile && <img src={imgFile} width={300} alt={'coburg-style-village'}/>}
+                </Col>
+            </Row>
+            <Row>
+                <Col>
+                    <p id = 'perf-report'>HI</p>
                 </Col>
             </Row>
         </Container>
     );
+}
+
+function formatTime(num) {
+    return num.toFixed(2);
 }
 
 function TodoListCard() {

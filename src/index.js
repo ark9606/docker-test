@@ -6,6 +6,11 @@ const addItem = require('./routes/addItem');
 const updateItem = require('./routes/updateItem');
 const deleteItem = require('./routes/deleteItem');
 const getImageBase64 = require('./routes/getImageBase64');
+const getImageURL = require('./routes/getImageURL');
+const getImageFile = require('./routes/getImageFile');
+
+
+// docker run -dp 3000:3000 ark9606/getting-started-docker
 
 app.use(express.json());
 app.use(express.static(__dirname + '/static'));
@@ -15,6 +20,8 @@ app.post('/items', addItem);
 app.put('/items/:id', updateItem);
 app.delete('/items/:id', deleteItem);
 app.get('/images/json-base64', getImageBase64);
+app.get('/images/json-url', getImageURL);
+app.get('/images/file', getImageFile);
 
 db.init().then(() => {
     app.listen(3000, () => console.log('Listening on port 3000'));
